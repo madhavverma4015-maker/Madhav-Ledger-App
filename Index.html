@@ -1,1 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111111">
+<title>Madhav Gold Ledger</title>
 
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ background:#0c0c0c;
+ color:#f5f5f5;
+ font-family:Arial,sans-serif;
+}
+header{
+ background:#171717;
+ border-bottom:1px solid #c8a54b;
+ padding:18px;
+ text-align:center;
+}
+header h1{
+ color:#d9b45a;
+ margin:0;
+ font-size:23px;
+}
+header p{color:#aaa;font-size:12px;margin:6px 0 0}
+.container{padding:14px;max-width:1000px;margin:auto}
+.cards{
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:10px;
+}
+.card{
+ background:#1a1a1a;
+ border:1px solid #333;
+ border-radius:12px;
+ padding:15px;
+}
+.card small{color:#aaa}
+.card h2{color:#e3bd65;margin:9px 0 0;font-size:22px}
+.section{
+ margin-top:15px;
+ background:#181818;
+ padding:15px;
+ border-radius:12px;
+ border:1px solid #303030;
+}
+.section h3{color:#d9b45a;margin-top:0}
+input,select,textarea{
+ width:100%;
+ padding:12px;
+ margin:6px 0;
+ background:#242424;
+ color:white;
+ border:1px solid #444;
+ border-radius:8px;
+ font-size:15px;
+}
+button{
+ background:#c9a34a;
+ color:#111;
+ border:0;
+ padding:12px;
+ border-radius:8px;
+ font-weight:bold;
+ margin:4px 2px;
+ cursor:pointer;
+}
+button.secondary{background:#333;color:white}
+button.danger{background:#8b2929;color:white}
+.nav{
+ display:flex;
+ overflow-x:auto;
+ gap:6px;
+ margin:12px 0;
+}
+.nav button{white-space:nowrap}
+.tab{display:none}
+.tab.active{display:block}
+table{
+ width:100%;
+ border-collapse:collapse;
+ font-size:13px;
+}
+th,td{
+ border-bottom:1px solid #333;
+ padding:9px 6px;
+ text-align:left;
+}
+th{color:#d9b45a}
+.tablewrap{overflow-x:auto}
+.gold{color:#e3bd65}
+.muted{color:#999;font-size:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+label{font-size:12px;color:#bbb}
+hr{border-color:#333}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>✦ MADHAV GOLD LEDGER ✦</h1>
+<p>Gold • Silver • Accounts • Manufacturing</p>
+</header>
+
+<div class="container">
+
+<div class="cards">
+<div class="card">
+<small>Total Parties</small>
+<h2 id="partyCount">0</h2>
+</div>
+<div class="card">
+<small>Fine Gold Balance (GM)</small>
+<h2 id="fineBalance">0.000</h2>
+</div>
+<div class="card">
+<small>Gross Gold Balance (GM)</small>
+<h2 id="grossBalance">0.000</h2>
+</div>
+<div class="card">
+<small>Today's Expenses (₹)</small>
+<h2 id="todayExpense">₹0</h2>
+</div>
+</div>
+
+<div class="nav">
+<button onclick="showTab('dashboard')">Dashboard</button>
+<button onclick="showTab('parties')">Parties</button>
+<button onclick="showTab('gold')">Gold Entry</button>
+<button onclick="showTab('sales')">Sales</button>
+<button onclick="showTab('expenses')">Expenses</button>
+<button onclick="showTab('reports')">Reports</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="tab active">
+<div class="section">
+<h3>Welcome to Madhav Gold Ledger</h3>
+<p class="muted">Apne gold accounts ka record ek hi jagah rakhein.</p>
+<button onclick="showTab('gold')">+ New Gold Entry</button>
+<button onclick="showTab('sales')">+ New Sales Bill</button>
+<button onclick="showTab('expenses')">+ Add Expense</button>
+</div>
+<div class="section">
+<h3>Recent Gold Transactions</h3>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Date</th><th>Party</th><th>Type</th><th>Weight</th></tr></thead>
+<tbody id="recentRows"></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<!-- PARTIES -->
+<div id="parties" class="tab">
+<div class="section">
+<h3>Add New Party</h3>
+<input id="pName" placeholder="Party Name">
+<input id="pPhone" placeholder="Mobile Number">
+<input id="pOpening" type="number" step="0.001" placeholder="Opening Gold Balance (GM)">
+<select id="pPurity">
+<option value="999">24K / 999</option>
+<option value="916">22K / 916</option>
+<option value="833">20K / 833</option>
+<option value="750">18K / 750</option>
+<option value="585">14K / 585</option>
+</select>
+<button onclick="addParty()">Save Party</button>
+</div>
+
+<div class="section">
+<h3>Party List</h3>
+<div id="partyList"></div>
+</div>
+</div>
+
+<!-- GOLD -->
+<div id="gold" class="tab">
+<div class="section">
+<h3>Gold Transaction</h3>
+<input type="date" id="gDate">
+<select id="gParty"></select>
+<select id="gType">
+<option value="receive">Gold Received (Party se mila)</option>
+<option value="issue">Gold Issued (Party ko diya)</option>
+</select>
+<div class="row">
+<div>
+<label>Gross Weight (GM)</label>
+<input id="gWeight" type="number" step="0.001" placeholder="0.000">
+</div>
+<div>
+<label>Purity</label>
+<select id="gPurity">
+<option value="999">24K (999)</option>
+<option value="916">22K (916)</option>
+<option value="833">20K (833)</option>
+<option value="750">18K (750)</option>
+<option value="585">14K (585)</option>
+</select>
+</div>
+</div>
+<input id="gRemark" placeholder="Remarks / Details">
+<button onclick="addGold()">Save Gold Entry</button>
+</div>
+</div>
+
+<!-- SALES -->
+<div id="sales" class="tab">
+<div class="section">
+<h3>Sales Bill</h3>
+<input type="date" id="sDate">
+<input id="sBill" placeholder="Bill Number (optional)">
+<select id="sParty"></select>
+<div class="row">
+<div><label>Pieces (PCS)</label><input id="sPcs" type="number" placeholder="0"></div>
+<div><label>Gross Weight (GM)</label><input id="sWeight" type="number" step="0.001" placeholder="0.000"></div>
+</div>
+<div class="row">
+<div><label>Purity</label>
+<select id="sPurity">
+<option value="999">24K / 999</option>
+<option value="916">22K / 916</option>
+<option value="833">20K / 833</option>
+<option value="750">18K / 750</option>
+<option value="585">14K / 585</option>
+</select></div>
+<div><label>Gold Rate ₹/GM</label><input id="sRate" type="number" placeholder="0"></div>
+</div>
+<div class="row">
+<div><label>Stone Price ₹</label><input id="sStone" type="number" placeholder="0"></div>
+<div><label>Rhodium Charge ₹</label><input id="sRhodium" type="number" placeholder="0"></div>
+</div>
+<div class="row">
+<div><label>Making Charge ₹</label><input id="sMaking" type="number" placeholder="0"></div>
+<div><label>Other Charges ₹</label><input id="sOther" type="number" placeholder="0"></div>
+</div>
+<input id="sPaid" type="number" placeholder="Amount Received ₹">
+<button onclick="addSale()">Save Sales Bill</button>
+</div>
+
+<div class="section">
+<h3>Sales History</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Date</th><th>Bill</th><th>Party</th><th>Total ₹</th></tr></thead>
+<tbody id="saleRows"></tbody>
+</table></div>
+</div>
+</div>
+
+<!-- EXPENSES -->
+<div id="expenses" class="tab">
+<div class="section">
+<h3>Daily Expense</h3>
+<input type="date" id="eDate">
+<input id="eName" placeholder="Expense Description">
+<input id="eCategory" placeholder="Category (Travelling, Tea, Salary etc.)">
+<input id="eAmount" type="number" placeholder="Amount ₹">
+<select id="eMode">
+<option>Cash</option>
+<option>UPI</option>
+<option>Bank</option>
+</select>
+<button onclick="addExpense()">Save Expense</button>
+</div>
+<div class="section">
+<h3>Expense History</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead>
+<tbody id="expenseRows"></tbody>
+</table></div>
+</div>
+</div>
+
+<!-- REPORTS -->
+<div id="reports" class="tab">
+<div class="section">
+<h3>Reports & Backup</h3>
+<button onclick="backupData()">Download JSON Backup</button>
+<button onclick="exportCSV()">Export Gold CSV</button>
+<button class="secondary" onclick="window.print()">Print / Save PDF</button>
+<hr>
+<label>Restore JSON Backup</label>
+<input type="file" id="restoreFile" accept=".json">
+<button onclick="restoreData()">Restore Backup</button>
+</div>
+
+<div class="section">
+<h3>Gold Transaction Report</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Date</th><th>Party</th><th>Type</th><th>Gross</th><th>Fine</th></tr></thead>
+<tbody id="reportRows"></tbody>
+</table></div>
+</div>
+</div>
+
+</div>
+
+<script>
+const KEY="MadhavGoldLedgerMobile_v1";
+let data=JSON.parse(localStorage.getItem(KEY)||'{"parties":[],"gold":[],"sales":[],"expenses":[]}');
+
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(data));
+ render();
+}
+function uid(){return Date.now().toString()+Math.random().toString(16).slice(2,6)}
+function today(){return new Date().toISOString().slice(0,10)}
+function money(n){return "₹"+Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2})}
+function fine(w,p){return Number(w||0)*Number(p||0)/999}
+function partyName(id){return data.parties.find(p=>p.id===id)?.name||"Unknown"}
+
+function showTab(id){
+ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ render();
+ window.scrollTo(0,0);
+}
+
+function addParty(){
+ let name=pName.value.trim();
+ if(!name){alert("Party name enter karein");return}
+ data.parties.push({
+ id:uid(),name,phone:pPhone.value,
+ opening:Number(pOpening.value||0),
+ purity:Number(pPurity.value)
+ });
+ pName.value="";pPhone.value="";pOpening.value="";
+ save();
+ alert("Party saved!");
+}
+
+function addGold(){
+ let partyId=gParty.value,weight=Number(gWeight.value),purity=Number(gPurity.value);
+ if(!partyId){alert("Party select karein");return}
+ if(weight<=0){alert("Weight enter karein");return}
+ data.gold.push({
+ id:uid(),date:gDate.value||today(),partyId,
+ type:gType.value,weight,purity,
+ remarks:gRemark.value
+ });
+ gWeight.value="";gRemark.value="";
+ save();
+ alert("Gold entry saved!");
+}
+
+function addSale(){
+ let partyId=sParty.value,weight=Number(sWeight.value),rate=Number(sRate.value);
+ if(!partyId){alert("Party select karein");return}
+ if(weight<=0){alert("Weight enter karein");return}
+ let goldValue=weight*rate;
+ let stone=Number(sStone.value||0);
+ let rhodium=Number(sRhodium.value||0);
+ let making=Number(sMaking.value||0);
+ let other=Number(sOther.value||0);
+ let total=goldValue+stone+rhodium+making+other;
+ let paid=Number(sPaid.value||0);
+ data.sales.push({
+ id:uid(),date:sDate.value||today(),bill:sBill.value||("MGL-"+data.sales.length+1),
+ partyId,pcs:Number(sPcs.value||0),weight,
+ purity:Number(sPurity.value),rate,
+ goldValue,stone,rhodium,making,other,total,paid,due:total-paid
+ });
+ sWeight.value="";sBill.value="";sPcs.value="";
+ sRate.value="";sStone.value="";sRhodium.value="";
+ sMaking.value="";sOther.value="";sPaid.value="";
+ save();
+ alert("Sales bill saved!\nTotal: "+money(total)+"\nDue: "+money(total-paid));
+}
+
+function addExpense(){
+ let amount=Number(eAmount.value);
+ if(!eName.value.trim()||amount<=0){alert("Expense details aur amount bharein");return}
+ data.expenses.push({
+ id:uid(),date:eDate.value||today(),
+ name:eName.value,category:eCategory.value,
+ amount,mode:eMode.value
+ });
+ eName.value="";eCategory.value="";eAmount.value="";
+ save();
+ alert("Expense saved!");
+}
+
+function partyBalance(p){
+ let bal=Number(p.opening||0);
+ data.gold.filter(g=>g.partyId===p.id).forEach(g=>{
+ if(g.type==="receive")bal-=g.weight;
+ else bal+=g.weight;
+ });
+ return bal;
+}
+
+function render(){
+ partyCount.textContent=data.parties.length;
+ let gross=0, fineBal=0;
+ data.parties.forEach(p=>{
+ let b=partyBalance(p);
+ gross+=b;
+ fineBal+=b*Number(p.purity||999)/999;
+ });
+ grossBalance.textContent=gross.toFixed(3);
+ fineBalance.textContent=fineBal.toFixed(3);
+
+ let todays=today();
+ todayExpense.textContent=money(data.expenses.filter(e=>e.date===todays).reduce((a,e)=>a+e.amount,0));
+
+ let opts='<option value="">Select Party</option>'+
+ data.parties.map(p=>`<option value="${p.id}">${p.name}</option>`).join("");
+ gParty.innerHTML=opts;sParty.innerHTML=opts;
+
+ partyList.innerHTML=data.parties.map(p=>`
+ <div class="card" style="margin:8px 0">
+ <b>${p.name}</b><br>
+ <small>${p.phone||""}</small><br>
+ Gross Balance: <span class="gold">${partyBalance(p).toFixed(3)} GM</span><br>
+ Fine Gold: <span class="gold">${(partyBalance(p)*p.purity/999).toFixed(3)} GM</span>
+ <button class="danger" onclick="deleteParty('${p.id}')">Delete</button>
+ </div>`).join("");
+
+ let goldRows=data.gold.slice().reverse();
+ recentRows.innerHTML=goldRows.slice(0,10).map(g=>`
+ <tr><td>${g.date}</td><td>${partyName(g.partyId)}</td>
+ <td>${g.type}</td><td>${g.weight.toFixed(3)}</td></tr>`).join("");
+
+ reportRows.innerHTML=goldRows.map(g=>`
+ <tr><td>${g.date}</td><td>${partyName(g.partyId)}</td>
+ <td>${g.type}</td><td>${g.weight.toFixed(3)}</td>
+ <td>${fine(g.weight,g.purity).toFixed(3)}</td></tr>`).join("");
+
+ saleRows.innerHTML=data.sales.slice().reverse().map(s=>`
+ <tr><td>${s.date}</td><td>${s.bill}</td>
+ <td>${partyName(s.partyId)}</td><td>${money(s.total)}</td></tr>`).join("");
+
+ expenseRows.innerHTML=data.expenses.slice().reverse().map(e=>`
+ <tr><td>${e.date}</td><td>${e.name}</td>
+ <td>${e.category||""}</td><td>${money(e.amount)}</td></tr>`).join("");
+}
+
+function deleteParty(id){
+ if(!confirm("Party delete karein?"))return;
+ data.parties=data.parties.filter(p=>p.id!==id);
+ save();
+}
+
+function backupData(){
+ let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+ let a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);
+ a.download="MadhavGoldLedger_Backup_"+today()+".json";
+ a.click();
+}
+
+function restoreData(){
+ let file=restoreFile.files[0];
+ if(!file){alert("Backup file select karein");return}
+ let reader=new FileReader();
+ reader.onload=()=>{
+ try{
+ let d=JSON.parse(reader.result);
+ if(!d.parties||!d.gold)throw new Error();
+ if(!confirm("Current data replace ho jayega. Continue?"))return;
+ data=d;save();alert("Backup restored!");
+ }catch(e){alert("Invalid backup file")}
+ };
+ reader.readAsText(file);
+}
+
+function exportCSV(){
+ let rows=[["Date","Party","Type","Gross Weight","Purity","Fine Gold"]];
+ data.gold.forEach(g=>rows.push([
+ g.date,partyName(g.partyId),g.type,g.weight,g.purity,fine(g.weight,g.purity)
+ ]));
+ let csv=rows.map(r=>r.join(",")).join("\n");
+ let blob=new Blob([csv],{type:"text/csv"});
+ let a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);
+ a.download="GoldLedger.csv";a.click();
+}
+
+gDate.value=today();
+sDate.value=today();
+eDate.value=today();
+render();
+</script>
+</body>
+</html>
